@@ -1,0 +1,125 @@
+/**
+ * Styles personnalisés pour l'application
+ */
+
+:root {
+    --primary-color: #198754; /* Vert Bootstrap pour cohérence */
+    --primary-dark: #0f5132;
+    --primary-light: #d1e7dd;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Style des cartes niveau */
+.niveau-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 5px solid var(--primary-color);
+}
+
+.niveau-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Personnalisation pour les formulaires */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Style personnalisé pour les tableaux */
+.table-green thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.table-green tbody tr:nth-of-type(odd) {
+    background-color: rgba(209, 231, 221, 0.3);
+}
+
+.table-green tbody tr:hover {
+    background-color: rgba(209, 231, 221, 0.5);
+}
+
+/* Personnalisation des boutons */
+.btn-outline-success:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Style des alertes */
+.custom-alert {
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Animation pour les cartes */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Pagination personnalisée */
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.pagination .page-link {
+    color: var(--primary-color);
+}
+
+/* Style spécifique pour le tableau récapitulatif */
+.recap-header {
+    background-color: var(--primary-dark) !important;
+    color: white;
+}
+
+/* Bouton WhatsApp */
+.btn-whatsapp {
+    background-color: #25d366;
+    color: white;
+}
+
+.btn-whatsapp:hover {
+    background-color: #128c7e;
+    color: white;
+}
+
+/* Style pour les toasts/notifications */
+.toast-success {
+    background-color: var(--primary-light);
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Style pour l'écran de connexion */
+.login-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    max-width: 400px;
+    border-top: 5px solid var(--primary-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .action-buttons .btn {
+        padding: .25rem .5rem;
+        font-size: .875rem;
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "name": "daara/app",
+    "description": "Application de gestion pour Daara Moderne",
+    "type": "project",
+    "require": {
+        "php": ">=7.0",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "dompdf/dompdf": "^2.0"
+    }
+}
