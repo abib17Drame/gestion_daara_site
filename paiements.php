@@ -304,9 +304,10 @@ function displayPaymentInterface($supabase, $niveau, $mois, $annee, $mois_option
                                 </table>
                             </div>
                             
-                            <div class="mt-4 text-center">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="fas fa-save me-2"></i> Enregistrer les paiements
+                            <!-- Bouton d'action flottant toujours visible -->
+                            <div style="position: fixed; right: 20px; bottom: 20px; z-index: 1050;">
+                                <button type="submit" class="btn btn-success btn-lg shadow rounded-pill">
+                                    <i class="fas fa-save me-2"></i> Enregistrer
                                 </button>
                             </div>
                         </form>

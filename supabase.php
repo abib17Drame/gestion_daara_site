@@ -7,11 +7,51 @@ class Supabase {
     private $url;
     private $key;
     private static $instance = null;
+    private $lastErrorMessage = null;
     
     private function __construct() {
-        $this->url = $_ENV['SUPABASE_URL'] ?? getenv('SUPABASE_URL');
-        $this->key = $_ENV['SUPABASE_API_KEY'] ?? getenv('SUPABASE_API_KEY');
-        
+        // Try multiple sources for config (Windows/XAMPP often lacks process env)
+        $this->url = $_ENV['SUPABASE_URL']
+            ?? getenv('SUPABASE_URL')
+            ?? ($_SERVER['SUPABASE_URL'] ?? null);
+        $this->key = $_ENV['SUPABASE_API_KEY']
+            ?? getenv('SUPABASE_API_KEY')
+            ?? ($_SERVER['SUPABASE_API_KEY'] ?? null);
+
+        // Attempt to load from a local .env if still missing
+        if (empty($this->url) || empty($this->key)) {
+            $this->loadEnvFromFile();
+        }
+
+        // Normalize URL (remove trailing slash)
+        if (!empty($this->url)) {
+            $this->url = rtrim($this->url, '/');
+        }
+    }
+
+    // Load SUPABASE_URL and SUPABASE_API_KEY from a .env file if available
+    private function loadEnvFromFile() {
+        $envPath = __DIR__ . DIRECTORY_SEPARATOR . '.env';
+        if (!file_exists($envPath) || !is_readable($envPath)) {
+            return;
+        }
+        $lines = @file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            return;
+        }
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) continue; // skip comments
+            $parts = explode('=', $line, 2);
+            if (count($parts) !== 2) continue;
+            $key = trim($parts[0]);
+            $value = trim($parts[1], " \t\n\r\0\x0B\"' ");
+            if ($key === 'SUPABASE_URL' && empty($this->url)) {
+                $this->url = $value;
+            }
+            if ($key === 'SUPABASE_API_KEY' && empty($this->key)) {
+                $this->key = $value;
+            }
+        }
     }
     
     public static function getInstance() {
@@ -25,11 +65,32 @@ class Supabase {
      * Exécute une requête cURL vers l'API Supabase
      */
     private function executeRequest($method, $endpoint, $data = null) {
+        // Validate configuration before any request
+        if (empty($this->url) || empty($this->key)) {
+            $this->lastErrorMessage = 'Supabase non configuré: SUPABASE_URL/SUPABASE_API_KEY manquants.';
+            throw new Exception('Supabase configuration missing');
+        }
+
         $url = $this->url . $endpoint;
         error_log("Supabase request URL: $url");
         
         $curl = curl_init();
         
+        // Build headers, adapting 'Prefer' per method
+        $headers = [
+            'apikey: ' . $this->key,
+            'Authorization: Bearer ' . $this->key,
+            'Content-Type: application/json',
+            'Accept: application/json',
+        ];
+
+        // For DELETE, postgrest commonly returns 204 with minimal body; request minimal to avoid body parsing issues
+        if ($method === 'DELETE') {
+            $headers[] = 'Prefer: return=minimal';
+        } else {
+            $headers[] = 'Prefer: return=representation';
+        }
+
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
@@ -38,12 +99,7 @@ class Supabase {
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_HTTPHEADER => [
-                'apikey: ' . $this->key,
-                'Authorization: Bearer ' . $this->key,
-                'Content-Type: application/json',
-                'Prefer: return=representation'
-            ],
+            CURLOPT_HTTPHEADER => $headers,
         ];
         
         if ($data !== null && ($method === 'POST' || $method === 'PATCH')) {
@@ -66,13 +122,20 @@ class Supabase {
         
         if ($statusCode >= 400) {
             error_log("Supabase API Error: Status $statusCode, Response: $response");
+            $this->lastErrorMessage = "Status $statusCode: $response";
             throw new Exception("API Error: Status $statusCode");
+        }
+        
+        // Some endpoints (e.g., DELETE) may return 204 No Content or an empty body
+        if ($statusCode === 204 || $response === '' || $response === null) {
+            return [];
         }
         
         $decodedResponse = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log("Supabase JSON Decode Error: " . json_last_error_msg());
             error_log("Raw response: $response");
+            $this->lastErrorMessage = 'JSON decode: ' . json_last_error_msg();
             throw new Exception("JSON Decode Error: " . json_last_error_msg());
         }
         
@@ -195,15 +258,27 @@ class Supabase {
         try {
             $queryString = '';
             foreach ($conditions as $column => $value) {
-                $queryString .= "$column=eq.$value&";
+                // Encoder la valeur pour gérer les espaces et les caractères spéciaux
+                $encodedValue = urlencode($value);
+                $queryString .= "$column=eq.$encodedValue&";
             }
-            
+            // trim trailing &
+            $queryString = rtrim($queryString, '&');
+
             $result = $this->executeRequest('DELETE', "/rest/v1/$table?$queryString");
             return $result !== null;
         } catch (Exception $e) {
             error_log("Supabase DELETE error: " . $e->getMessage());
+            $this->lastErrorMessage = $e->getMessage();
             return false;
         }
+    }
+
+    /**
+     * Get last error message from Supabase wrapper
+     */
+    public function getLastError() {
+        return $this->lastErrorMessage;
     }
     
     /**

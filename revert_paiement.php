@@ -11,6 +11,12 @@ $supabase = Supabase::getInstance();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['paiement_id'])) {
     $paiementId = $_POST['paiement_id'];
+    // Validation de base (non vide)
+    if (empty($paiementId)) {
+        $_SESSION['error_message'] = "Identifiant de paiement manquant.";
+        header("Location: historique.php");
+        exit;
+    }
     $niveau = isset($_POST['niveau']) ? $_POST['niveau'] : '';
     
     // Supprimer complètement le paiement
@@ -19,7 +25,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['paiement_id'])) {
     if ($result) {
         $_SESSION['success_message'] = "Le paiement a été annulé avec succès.";
     } else {
-        $_SESSION['error_message'] = "Erreur lors de l'annulation du paiement.";
+        // Ajouter le détail d'erreur si disponible
+        $detail = method_exists($supabase, 'getLastError') ? $supabase->getLastError() : '';
+        $_SESSION['error_message'] = "Erreur lors de l'annulation du paiement." . (!empty($detail) ? " Détail: $detail" : "");
     }
     
     // Redirection vers la page d'historique
