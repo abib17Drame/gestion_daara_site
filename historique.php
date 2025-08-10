@@ -203,7 +203,7 @@ usort($paiementsAvecEleves, function($a, $b) {
                                                     <input type="hidden" name="paiement_id" value="<?php echo $paiement['id']; ?>">
                                                     <input type="hidden" name="niveau" value="<?php echo htmlspecialchars($niveau); ?>">
                                                     <button type="submit" class="btn btn-outline-danger">
-                                                        <i class="fas fa-times"></i> Annuler
+                                                        <i class="fas fa-undo"></i> Annuler
                                                     </button>
                                                 </form>
                                             </div>
