@@ -9,8 +9,8 @@ class Supabase {
     private static $instance = null;
     
     private function __construct() {
-        $this->url = getenv('SUPABASE_URL') ?: 'https://jmvdiiecfkwrwyrychoc.supabase.co';
-        $this->key = getenv('SUPABASE_API_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptdmRpaWVjZmt3cnd5cnljaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ1MDE0MjEsImV4cCI6MjA2MDA3NzQyMX0.khQtvQisPluf0maUh7Krf2CmENOhf0QAeXdWklVMzYo';
+        $this->url = $_ENV['SUPABASE_URL'] ?? getenv('SUPABASE_URL');
+        $this->key = $_ENV['SUPABASE_API_KEY'] ?? getenv('SUPABASE_API_KEY');
         
     }
     
